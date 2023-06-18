@@ -11,7 +11,7 @@ public class Main {
             while(true)
             {
                 Socket clientSocket = server.accept();
-                System.out.println("User Connected!");
+                System.out.println("User Connected to Server On Port " + clientSocket.getPort());
                 //----------
                 CommunicationHandler handler = new CommunicationHandler(clientSocket,usersThreads);
                 handler.start();

@@ -26,15 +26,15 @@ public class CommunicationHandler extends Thread {
                 message = bufferIn.readLine();
                 if (message.equals("Exit")) break;
                 else {
-                    System.out.println("Received message from client: " + message);
+                    if (message.isBlank()) System.out.println("User Left the Chat");
+                    System.out.println("Says " + message);
                     for (Thread thread : threads) {
                         if (thread != Thread.currentThread()) {
                             PrintWriter PWriter = new PrintWriter(socket.getOutputStream(), true);
                             PWriter.println(message);
                         }
                     }
-                    System.out.printf("Server %d: %s\n" ,socketID , message);
-                    System.out.println(this.socketID + " : " + message);
+                    System.out.printf("User %d: %s\n" ,socketID , message);
                 }
             }
             System.out.println("Client Disconnected...");
