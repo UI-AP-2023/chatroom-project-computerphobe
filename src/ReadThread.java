@@ -4,21 +4,22 @@ import java.io.InputStreamReader;
 import java.net.Socket;
 
 public class ReadThread extends Thread{
-    private String name;
+    private String name = "User A";
 
     private Socket client;
 
-    public ReadThread(String name) {
-        this.name = name;
+    public ReadThread(Socket client) {
+        this.client = client;
     }
 
     @Override
     public void run() {
-        try (Socket client = new Socket("localhost",4000)) {
+        try {
+            System.out.println(this.name + " Connected To The Server On Port " + client.getPort());
             BufferedReader bufferIn = new BufferedReader(new InputStreamReader(client.getInputStream()));
             while (true) {
                 String incomingMessage = bufferIn.readLine();
-                if (incomingMessage.isEmpty()) break;
+                if (incomingMessage.equals("Finish")) break;
                 System.out.println(incomingMessage);
             }
         } catch (IOException IO) {
