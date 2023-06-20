@@ -1,14 +1,17 @@
+import messageRelated.Message;
+
 import java.io.*;
 import java.net.Socket;
 import java.util.*;
 
 public class CommunicationHandler extends Thread {
+    private Message theMessage;
     private final Socket socket;
-
-    private final ArrayList<Thread> threads;
+    private ArrayList<Thread> threads;
     private static long socketCount;
-
     private final long socketID;
+
+    private final DataBaseMessage db = new DataBaseMessage();
 
     public CommunicationHandler(Socket socket, ArrayList<Thread> threads) {
         this.socket = socket;
@@ -20,48 +23,92 @@ public class CommunicationHandler extends Thread {
     public void run() {
 
         try {
+            ObjectInputStream objectIn = new ObjectInputStream(new BufferedInputStream(socket.getInputStream()));
 
-            BufferedReader bufferIn = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-            String message;
+            ObjectOutputStream objectOut = new ObjectOutputStream(new BufferedOutputStream(socket.getOutputStream()));
+
             //---------------
-
-            // send this for client and calculate ping
-            {
-                long now = System.currentTimeMillis();
-
-                PrintWriter pw = new PrintWriter(socket.getOutputStream());
-                pw.println(now);
-            }
-
 
             while (true) {
 
-                message = bufferIn.readLine();
-                if (message.equals("Exit")) break;
+                theMessage = (Message) objectIn.readObject();
+
+                if (theMessage.getText().equals("Exit")) break;
+
+                //ping on client side
+                else if (theMessage.getText().isEmpty()) objectOut.writeObject(new Message());
 
                 else {
 
-                    if (message.isBlank()) System.out.println("User Left the Chat");
-                    System.out.println("Says " + message);
+                    db.setTheMessage(theMessage);
 
-                    for (Thread thread : threads) {
+                    if (db.insertMessage()) {
 
-                        if (thread != Thread.currentThread()) {
+                        for (Thread thread : threads) {
 
-                            PrintWriter PWriter = new PrintWriter(socket.getOutputStream(), true);
-                            PWriter.println(message);
+                            if (thread != Thread.currentThread()) {
+                                objectOut.writeObject(theMessage);
+                            }
+
                         }
+
                     }
 
-                    System.out.printf("User %d: %s\n", socketID, message);
-                }
-            }
+                    else System.out.println("Error in Inserting The Message to The Data Base!");
 
+                }
+
+                    System.out.printf("User %d: %s\n", socketID, theMessage.getText());
+            }
             System.out.println("Client Disconnected...");
+
             socket.close();
 
-        } catch (IOException e) {
-            e.printStackTrace();
+        } catch (Exception ex) {
+            ex.printStackTrace();
         }
+    }
+// Should Be Moved To The Client Side
+    int getPing() throws IOException {
+        int ping = 0;
+        // send this for client and calculate ping
+        {
+            long now = System.currentTimeMillis();
+            PrintWriter pw = new PrintWriter(socket.getOutputStream());
+            pw.println(now);
+        }
+        return ping;
+    }
+
+    public Message getTheMessage() {
+        return theMessage;
+    }
+
+    public void setTheMessage(Message theMessage) {
+        this.theMessage = theMessage;
+    }
+
+    public Socket getSocket() {
+        return socket;
+    }
+
+    public ArrayList<Thread> getThreads() {
+        return threads;
+    }
+
+    public void setThreads(ArrayList<Thread> threads) {
+        this.threads = threads;
+    }
+
+    public static long getSocketCount() {
+        return socketCount;
+    }
+
+    public static void setSocketCount(long socketCount) {
+        CommunicationHandler.socketCount = socketCount;
+    }
+
+    public long getSocketID() {
+        return socketID;
     }
 }
