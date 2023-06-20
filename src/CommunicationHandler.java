@@ -5,7 +5,7 @@ import java.util.*;
 public class CommunicationHandler extends Thread {
     private final Socket socket;
 
-    private ArrayList<Thread> threads;
+    private final ArrayList<Thread> threads;
     private static long socketCount;
 
     private final long socketID;
@@ -26,10 +26,13 @@ public class CommunicationHandler extends Thread {
             //---------------
 
             // send this for client and calculate ping
-            long now = System.currentTimeMillis();
+            {
+                long now = System.currentTimeMillis();
 
-            PrintWriter pw = new PrintWriter(socket.getOutputStream());
-            pw.println(now);
+                PrintWriter pw = new PrintWriter(socket.getOutputStream());
+                pw.println(now);
+            }
+
 
             while (true) {
 
@@ -42,13 +45,15 @@ public class CommunicationHandler extends Thread {
                     System.out.println("Says " + message);
 
                     for (Thread thread : threads) {
+
                         if (thread != Thread.currentThread()) {
+
                             PrintWriter PWriter = new PrintWriter(socket.getOutputStream(), true);
                             PWriter.println(message);
                         }
                     }
 
-                    System.out.printf("User %d: %s\n" ,socketID , message);
+                    System.out.printf("User %d: %s\n", socketID, message);
                 }
             }
 
