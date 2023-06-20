@@ -8,6 +8,8 @@ public class Main {
         System.out.println("Waiting...");
         ArrayList<Thread> usersThreads = new ArrayList<>();
         try (ServerSocket server = new ServerSocket(4000)) {
+
+            //noinspection InfiniteLoopStatement
             while(true)
             {
                 Socket clientSocket = server.accept();
@@ -16,6 +18,7 @@ public class Main {
                 CommunicationHandler handler = new CommunicationHandler(clientSocket,usersThreads);
                 handler.start();
             }
+
         } catch (IOException IO) {
             System.out.println("Error in Connection!");
         }
