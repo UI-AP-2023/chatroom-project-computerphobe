@@ -20,17 +20,6 @@ public class ReadThread extends Thread{
             System.out.println(name + " Connected To The Server On Port " + clientSocket.getPort());
             BufferedReader bufferIn = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
 
-            //receive server current time and calculate ping
-            {
-                long now = System.currentTimeMillis();
-
-                long serverCurrentTime = Long.parseLong(bufferIn.readLine());
-
-                long ping = now - serverCurrentTime;
-
-                System.out.println("Ping: "+ ping + " milli second");
-            }
-
             //=----------------------------------
 
 
