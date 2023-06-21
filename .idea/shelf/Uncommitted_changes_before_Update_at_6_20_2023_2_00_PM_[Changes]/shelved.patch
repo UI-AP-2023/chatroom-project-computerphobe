@@ -1,0 +1,354 @@
+Index: src/CommunicationHandler.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>import java.io.*;\r\nimport java.net.Socket;\r\nimport java.util.*;\r\n\r\npublic class CommunicationHandler extends Thread {\r\n    private final Socket socket;\r\n\r\n    private ArrayList<Thread> threads;\r\n    private static long socketCount;\r\n\r\n    private final long socketID;\r\n\r\n    public CommunicationHandler(Socket socket, ArrayList<Thread> threads) {\r\n        this.socket = socket;\r\n        socketID = ++socketCount;\r\n        this.threads = threads;\r\n    }\r\n\r\n    @Override\r\n    public void run() {\r\n        try {\r\n            BufferedReader bufferIn = new BufferedReader(new InputStreamReader(socket.getInputStream()));\r\n            String message;\r\n            //---------------\r\n            while (true) {\r\n                message = bufferIn.readLine();\r\n                if (message.equals(\"Exit\")) break;\r\n                else {\r\n                    if (message.isBlank()) System.out.println(\"User Left the Chat\");\r\n                    System.out.println(\"Says \" + message);\r\n                    for (Thread thread : threads) {\r\n                        if (thread != Thread.currentThread()) {\r\n                            PrintWriter PWriter = new PrintWriter(socket.getOutputStream(), true);\r\n                            PWriter.println(message);\r\n                        }\r\n                    }\r\n                    System.out.printf(\"User %d: %s\\n\" ,socketID , message);\r\n                }\r\n            }\r\n            System.out.println(\"Client Disconnected...\");\r\n            socket.close();\r\n        } catch (IOException e) {\r\n            e.printStackTrace();\r\n        }\r\n    }\r\n}
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/src/CommunicationHandler.java b/src/CommunicationHandler.java
+--- a/src/CommunicationHandler.java	(revision f285eb4bd5e0dd33607184d7be0db2dc5ff28d86)
++++ b/src/CommunicationHandler.java	(date 1687249446330)
+@@ -1,13 +1,16 @@
++import messageRelated.Message;
++
+ import java.io.*;
+ import java.net.Socket;
+ import java.util.*;
+ 
+ public class CommunicationHandler extends Thread {
++
++    private Message theMessage;
++
+     private final Socket socket;
+-
+     private ArrayList<Thread> threads;
+     private static long socketCount;
+-
+     private final long socketID;
+ 
+     public CommunicationHandler(Socket socket, ArrayList<Thread> threads) {
+@@ -19,28 +22,26 @@
+     @Override
+     public void run() {
+         try {
+-            BufferedReader bufferIn = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+-            String message;
++            ObjectInputStream ObjectIn = new ObjectInputStream(new BufferedInputStream(socket.getInputStream()));
+             //---------------
+             while (true) {
+-                message = bufferIn.readLine();
+-                if (message.equals("Exit")) break;
++                theMessage = (Message) ObjectIn.readObject();
++                if (theMessage.getText().equals("Exit")) break;
+                 else {
+-                    if (message.isBlank()) System.out.println("User Left the Chat");
+-                    System.out.println("Says " + message);
++                    if (theMessage.getText().isBlank()) System.out.println("User Left the Chat");
+                     for (Thread thread : threads) {
+                         if (thread != Thread.currentThread()) {
+                             PrintWriter PWriter = new PrintWriter(socket.getOutputStream(), true);
+-                            PWriter.println(message);
++                            PWriter.printf("User %d: %s\n" ,socketID , theMessage);
++                            System.out.printf("User %d: %s\n" ,socketID , theMessage);
+                         }
+                     }
+-                    System.out.printf("User %d: %s\n" ,socketID , message);
+                 }
+             }
+-            System.out.println("Client Disconnected...");
++            System.out.println("messageRelated.Client Disconnected...");
+             socket.close();
+-        } catch (IOException e) {
+-            e.printStackTrace();
++        } catch (Exception ex) {
++            ex.printStackTrace();
+         }
+     }
+ }
+\ No newline at end of file
+Index: src/MySQLConnection.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/src/MySQLConnection.java b/src/MySQLConnection.java
+new file mode 100644
+--- /dev/null	(date 1687246860736)
++++ b/src/MySQLConnection.java	(date 1687246860736)
+@@ -0,0 +1,36 @@
++import java.sql.Connection;
++import java.sql.DriverManager;
++import java.sql.ResultSet;
++import java.sql.Statement;
++
++public class MySQLConnection {
++    String URL = "jdbc:mysql://localhost/mychatroom";
++    String username = "root";
++    String password = "Admin";
++
++    Boolean executeSQL(String sqlCmd) {
++        try {
++            Class.forName("com.mysql.cj.jdbc.Driver");
++            Connection connection = DriverManager.getConnection(URL, username, password);
++            Statement statement = connection.prepareStatement(sqlCmd);
++            statement.execute(sqlCmd);
++            connection.close();
++        } catch (Exception ex) {
++            System.out.println("Error in Connecting to Data Base!\n\tPlease Check Your Connection.");
++        }
++        return true;
++    }
++
++    ResultSet executeQuery (String sqlCmd) {
++        try {
++            Class.forName("com.mysql.cj.jdbc.Driver");
++            Connection connection = DriverManager.getConnection(URL, username, password);
++            Statement statement = connection.prepareStatement(sqlCmd);
++            ResultSet rs = statement.executeQuery(sqlCmd);
++            connection.close();
++            return rs;
++        } catch (Exception ex) {
++            return null;
++        }
++    }
++}
+\ No newline at end of file
+Index: src/messageRelated/Client.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/src/messageRelated/Client.java b/src/messageRelated/Client.java
+new file mode 100644
+--- /dev/null	(date 1687249493094)
++++ b/src/messageRelated/Client.java	(date 1687249493094)
+@@ -0,0 +1,49 @@
++package messageRelated;
++
++import java.util.ArrayList;
++
++public class Client {
++    private String username;
++    private long lastMessageNumber;
++    private boolean isOnline;
++
++    private ArrayList<Message> unreadMessages = new ArrayList<>();
++
++    public Client(String username, long lastMessageNumber, boolean isOnline) {
++        this.username = username;
++        this.lastMessageNumber = lastMessageNumber;
++        this.isOnline = isOnline;
++    }
++
++    public String getUsername() {
++        return username;
++    }
++
++    public void setUsername(String username) {
++        this.username = username;
++    }
++
++    public long getLastMessageNumber() {
++        return lastMessageNumber;
++    }
++
++    public void setLastMessageNumber(long lastMessageNumber) {
++        this.lastMessageNumber = lastMessageNumber;
++    }
++
++    public boolean isOnline() {
++        return isOnline;
++    }
++
++    public void setOnline(boolean online) {
++        isOnline = online;
++    }
++
++    public ArrayList<Message> getUnreadMessages() {
++        return unreadMessages;
++    }
++
++    public void setUnreadMessages(ArrayList<Message> unreadMessages) {
++        this.unreadMessages = unreadMessages;
++    }
++}
+Index: src/DataBaseMessage.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/src/DataBaseMessage.java b/src/DataBaseMessage.java
+new file mode 100644
+--- /dev/null	(date 1687256987739)
++++ b/src/DataBaseMessage.java	(date 1687256987739)
+@@ -0,0 +1,61 @@
++import messageRelated.Client;
++import messageRelated.Message;
++
++import java.net.Socket;
++import java.sql.ResultSet;
++
++public class DataBaseMessage {
++
++    Message theMessage;
++    Client client;
++    private Socket clientSocket;
++
++    public DataBaseMessage(Message theMessage, Socket clientSocket) {
++        this.theMessage = theMessage;
++        this.clientSocket = clientSocket;
++    }
++
++    Boolean insertMessage() {
++        Client sender = theMessage.getSender();
++        try {
++            String sqlCmd = String.format
++                    ("INSERT INTO messages (MessagePriority,MessageText,Date,Time,Sender) " +
++                                    "values (%d,%s,%tY-%tm-%td,%tH:%tM:%tS,%s)",
++                            this.theMessage.getMessagePriority(), this.theMessage.getText(),
++                            this.theMessage.getMessageDate(), this.theMessage.getMessageDate(),
++                            this.theMessage.getMessageDate(), this.theMessage.getMessageTime(),
++                            this.theMessage.getMessageTime(), this.theMessage.getMessageTime(),
++                            sender.getUsername());
++            MySQLConnection sql = new MySQLConnection();
++            return sql.executeSQL(sqlCmd);
++        } catch (Exception ex) {
++            System.out.println("Error in Sending The messageRelated.Message To the Data Base!");
++            return false;
++        }
++    }
++
++    Message readMessage() {
++        Client receiver = this.client;
++        String sqlCmd = String.format
++                ("Select * From messages WHERE MessagePriority > %d", receiver.getLastMessageNumber());
++        MySQLConnection sql = new MySQLConnection();
++        ResultSet rs = sql.executeQuery(sqlCmd);
++        if (rs == null) System.out.println("Error in Connecting to Data Base!\n\tPlease Check Your Connection.");
++        else {
++            try {
++
++                while (rs.next()) {
++
++                    Message newMessage = new Message(rs.getString("MessageText"),
++                            rs.getLong("MessagePriority"), rs.getTime("Time").toLocalTime()
++                            , rs.getDate("Date").toLocalDate(), rs.getObject("Sender", Client.class));
++                    receiver.getUnreadMessages().add(newMessage);
++
++                }
++
++            } catch (Exception ex) {
++                System.out.println("Error in Selecting Data From Data Base!");
++            }
++        }
++    }
++}
+Index: src/messageRelated/MessageType.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/src/messageRelated/MessageType.java b/src/messageRelated/MessageType.java
+new file mode 100644
+--- /dev/null	(date 1687247497690)
++++ b/src/messageRelated/MessageType.java	(date 1687247497690)
+@@ -0,0 +1,5 @@
++package messageRelated;
++
++public enum MessageType {
++    PV,GROUP
++}
+Index: .idea/inspectionProfiles/Project_Default.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/.idea/inspectionProfiles/Project_Default.xml b/.idea/inspectionProfiles/Project_Default.xml
+new file mode 100644
+--- /dev/null	(date 1687247498347)
++++ b/.idea/inspectionProfiles/Project_Default.xml	(date 1687247498347)
+@@ -0,0 +1,8 @@
++<component name="InspectionProjectProfileManager">
++  <profile version="1.0">
++    <option name="myName" value="Project Default" />
++    <inspection_tool class="AutoCloseableResource" enabled="true" level="WARNING" enabled_by_default="true">
++      <option name="METHOD_MATCHER_CONFIG" value="java.util.Formatter,format,java.io.Writer,append,com.google.common.base.Preconditions,checkNotNull,org.hibernate.Session,close,java.io.PrintWriter,printf,java.io.PrintStream,printf,MySQLConnection,executeQuery" />
++    </inspection_tool>
++  </profile>
++</component>
+\ No newline at end of file
+Index: src/messageRelated/Message.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/src/messageRelated/Message.java b/src/messageRelated/Message.java
+new file mode 100644
+--- /dev/null	(date 1687249446408)
++++ b/src/messageRelated/Message.java	(date 1687249446408)
+@@ -0,0 +1,65 @@
++package messageRelated;
++
++import messageRelated.Client;
++import messageRelated.MessageType;
++
++import java.time.LocalDate;
++import java.time.LocalTime;
++
++public class Message {
++    private String text;
++//    private MessageType messageType;
++    private long messagePriority;
++    private LocalTime messageTime;
++    private LocalDate messageDate;
++    private Client sender;
++
++    public Message(String text, long messagePriority,
++                   LocalTime messageTime, LocalDate messageDate, Client sender) {
++        this.text = text;
++        this.messagePriority = messagePriority;
++        this.messageTime = messageTime;
++        this.messageDate = messageDate;
++        this.sender = sender;
++    }
++
++    public String getText() {
++        return text;
++    }
++
++    public void setText(String text) {
++        this.text = text;
++    }
++
++    public long getMessagePriority() {
++        return messagePriority;
++    }
++
++    public void setMessagePriority(long messagePriority) {
++        this.messagePriority = messagePriority;
++    }
++
++    public LocalTime getMessageTime() {
++        return messageTime;
++    }
++
++    public void setMessageTime(LocalTime messageTime) {
++        this.messageTime = messageTime;
++    }
++
++    public LocalDate getMessageDate() {
++        return messageDate;
++    }
++
++    public void setMessageDate(LocalDate messageDate) {
++        this.messageDate = messageDate;
++    }
++
++    public Client getSender() {
++        return sender;
++    }
++
++    public void setSender(Client sender) {
++        this.sender = sender;
++    }
++}

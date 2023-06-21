@@ -1,0 +1,17 @@
+Index: src/CommunicationHandler.java
+===================================================================
+diff --git a/src/CommunicationHandler.java b/src/CommunicationHandler.java
+--- a/src/CommunicationHandler.java	
++++ b/src/CommunicationHandler.java	
+@@ -14,9 +14,11 @@
+     private final DataBaseMessage db = new DataBaseMessage();
+ 
+     public CommunicationHandler(Socket socket, ArrayList<Thread> threads) {
++
+         this.socket = socket;
+         socketID = ++socketCount;
+         this.threads = threads;
++
+     }
+ 
+     @Override
