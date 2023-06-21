@@ -4,11 +4,13 @@ import java.net.Socket;
 import java.util.ArrayList;
 
 public class Main {
+
+    static ArrayList<CommunicationHandler> usersThreads = new ArrayList<>();
+
     public static void main(String[] args) {
 
         System.out.println("Waiting...");
 
-        ArrayList<Thread> usersThreads = new ArrayList<>();
 
         try (ServerSocket server = new ServerSocket(4000)) {
 
@@ -21,7 +23,7 @@ public class Main {
 
                 //----------
 
-                CommunicationHandler handler = new CommunicationHandler(clientSocket,usersThreads);
+                CommunicationHandler handler = new CommunicationHandler(clientSocket);
                 handler.start();
             }
 

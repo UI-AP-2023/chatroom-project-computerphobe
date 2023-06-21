@@ -2,22 +2,23 @@ import messageRelated.Message;
 
 import java.io.*;
 import java.net.Socket;
-import java.util.*;
 
 public class CommunicationHandler extends Thread {
     private Message theMessage;
     private final Socket socket;
-    private ArrayList<Thread> threads;
     private static long socketCount;
     private final long socketID;
 
     private final DataBaseMessage db = new DataBaseMessage();
+    private  final ObjectOutputStream objectOut;
 
-    public CommunicationHandler(Socket socket, ArrayList<Thread> threads) {
+
+    public CommunicationHandler(Socket socket) throws IOException {
         this.socket = socket;
         socketID = ++socketCount;
-        this.threads = threads;
+        objectOut = new ObjectOutputStream(new BufferedOutputStream(socket.getOutputStream()));
     }
+
 
     @Override
     public void run() {
@@ -25,37 +26,54 @@ public class CommunicationHandler extends Thread {
         try {
             ObjectInputStream objectIn = new ObjectInputStream(new BufferedInputStream(socket.getInputStream()));
 
-            ObjectOutputStream objectOut = new ObjectOutputStream(new BufferedOutputStream(socket.getOutputStream()));
 
             //---------------
 
-            while (true) {
+            boolean isExit = false;
+
+            while (!isExit) {
 
                 theMessage = (Message) objectIn.readObject();
 
-                if (theMessage.getText().equals("Exit")) break;
+                switch (theMessage.getText()) {
 
-                //ping on client side
-                else if (theMessage.getText().isEmpty()) objectOut.writeObject(new Message());
+                    case "Exit" -> isExit = true;
 
-                else {
+                    case "" -> objectOut.writeObject(theMessage);
 
-                    db.setTheMessage(theMessage);
+                    default ->  {
 
-                    if (db.insertMessage()) {
+                        if (theMessage.getText().equals("Offline")) {
 
-                        for (Thread thread : threads) {
 
-                            if (thread != Thread.currentThread()) {
-                                objectOut.writeObject(theMessage);
+                            for (CommunicationHandler ch : Main.usersThreads) {
+
+                                if (ch != Thread.currentThread()) {
+                                    ch.objectOut.writeObject(theMessage);
+                                }
+
+                            }
+
+                            break;
+                        }
+
+                        db.setTheMessage(theMessage);
+
+                        if (db.insertMessage()) {
+
+                            for (CommunicationHandler ch : Main.usersThreads) {
+
+                                if (ch != Thread.currentThread()) {
+                                    ch.objectOut.writeObject(theMessage);
+                                }
+
                             }
 
                         }
 
+                        else System.out.println("Error in Inserting The Message to The Data Base!");
+
                     }
-
-                    else System.out.println("Error in Inserting The Message to The Data Base!");
-
                 }
 
                     System.out.printf("User %d: %s\n", socketID, theMessage.getText());
@@ -68,17 +86,6 @@ public class CommunicationHandler extends Thread {
             ex.printStackTrace();
         }
     }
-// Should Be Moved To The Client Side
-    int getPing() throws IOException {
-        int ping = 0;
-        // send this for client and calculate ping
-        {
-            long now = System.currentTimeMillis();
-            PrintWriter pw = new PrintWriter(socket.getOutputStream());
-            pw.println(now);
-        }
-        return ping;
-    }
 
     public Message getTheMessage() {
         return theMessage;
@@ -90,14 +97,6 @@ public class CommunicationHandler extends Thread {
 
     public Socket getSocket() {
         return socket;
-    }
-
-    public ArrayList<Thread> getThreads() {
-        return threads;
-    }
-
-    public void setThreads(ArrayList<Thread> threads) {
-        this.threads = threads;
     }
 
     public static long getSocketCount() {

@@ -15,9 +15,9 @@ public class DataBaseMessage {
         try {
 
             String sqlCmd = String.format
-                    ("INSERT INTO messages (MessagePriority,MessageText,Date,Time,Sender) " +
+                    ("INSERT INTO messages (MessageText,Date,Time,Sender) " +
                                     "values (%d,%s,%tY-%tm-%td,%tH:%tM:%tS,%s)",
-                            this.theMessage.getMessagePriority(), this.theMessage.getText(),
+                            this.theMessage.getText(),
                             this.theMessage.getMessageDate(), this.theMessage.getMessageDate(),
                             this.theMessage.getMessageDate(), this.theMessage.getMessageTime(),
                             this.theMessage.getMessageTime(), this.theMessage.getMessageTime(),
@@ -35,8 +35,7 @@ public class DataBaseMessage {
 
     public void readMessage() {
 
-        String sqlCmd = String.format
-                ("Select * From messages WHERE MessagePriority > %d", receiver.getLastMessageNumber());
+        String sqlCmd = String.format ("Select * From messages");
 
         MySQLConnection sql = new MySQLConnection();
 
@@ -51,8 +50,8 @@ public class DataBaseMessage {
                 while (rs.next()) {
 
                     Message newMessage = new Message(rs.getString("MessageText"),
-                            rs.getLong("MessagePriority"), rs.getTime("Time").toLocalTime()
-                            , rs.getDate("Date").toLocalDate(), rs.getObject("Sender", Client.class));
+                            rs.getTime("Time").toLocalTime(), rs.getDate("Date").toLocalDate(),
+                            rs.getObject("Sender", Client.class));
                     receiver.getUnreadMessages().add(newMessage);
 
                 }
