@@ -1,55 +1,81 @@
+import databaseRelated.DataBaseMessage;
 import messageRelated.Message;
 
 import java.io.*;
 import java.net.Socket;
+import java.util.ArrayList;
+import java.util.Objects;
 
 public class CommunicationHandler extends Thread {
-    private Message theMessage;
-    private final Socket socket;
-    private static long socketCount;
+    private String theMessage;
+    private Message receivedMessage;
+    private final Socket clientSocket;
+    private static long socketCounter;
     private final long socketID;
-
     private final DataBaseMessage db = new DataBaseMessage();
-    private  final ObjectOutputStream objectOut;
 
-
-    public CommunicationHandler(Socket socket) throws IOException {
-        this.socket = socket;
-        socketID = ++socketCount;
-        objectOut = new ObjectOutputStream(new BufferedOutputStream(socket.getOutputStream()));
+    public CommunicationHandler(Socket clientSocket) {
+        this.clientSocket = clientSocket;
+        socketID = ++socketCounter;
     }
-
 
     @Override
     public void run() {
 
         try {
-            ObjectInputStream objectIn = new ObjectInputStream(new BufferedInputStream(socket.getInputStream()));
 
+            System.out.println("Communication Handler Start");
 
-            //---------------
+            BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(clientSocket.getOutputStream()));
+
+            BufferedReader reader = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
 
             boolean isExit = false;
 
+            // older messages
+//            ArrayList<String> olderMessages = db.readMessage();
+
+//            if (olderMessages == null) {
+//
+//                System.out.println("No Old Messages!");
+//                writer.write("No Old Messages! Be The First To Text :)");
+//
+//            } else {
+//
+//                for (String message : olderMessages) {
+//                    writer.write(message);
+//                }
+//            }
+
+            // new messages
             while (!isExit) {
 
-                theMessage = (Message) objectIn.readObject();
+                theMessage = reader.readLine();
 
-                switch (theMessage.getText()) {
+                if (theMessage.equals(""))
+                    writer.write(theMessage);
+
+                else receivingFormatter();
+
+                // check if receives the messages
+                System.out.println("New Message");
+
+
+                switch (receivedMessage.getText()) {
 
                     case "Exit" -> isExit = true;
 
-                    case "" -> objectOut.writeObject(theMessage);
+                    case "" -> writer.write(theMessage);
 
-                    default ->  {
+                    default -> {
 
-                        if (theMessage.getText().equals("Offline")) {
+                        if (receivedMessage.getText().equals("Offline")) {
 
 
-                            for (CommunicationHandler ch : Main.usersThreads) {
+                            for (Thread thread : Main.usersThreads) {
 
-                                if (ch != Thread.currentThread()) {
-                                    ch.objectOut.writeObject(theMessage);
+                                if (thread != Thread.currentThread()) {
+                                    writer.write(theMessage);
                                 }
 
                             }
@@ -57,57 +83,37 @@ public class CommunicationHandler extends Thread {
                             break;
                         }
 
-                        db.setTheMessage(theMessage);
+                        db.setTheMessage(receivedMessage);
 
                         if (db.insertMessage()) {
 
-                            for (CommunicationHandler ch : Main.usersThreads) {
+                            for (Thread thread : Main.usersThreads) {
 
-                                if (ch != Thread.currentThread()) {
-                                    ch.objectOut.writeObject(theMessage);
+                                if (thread != Thread.currentThread()) {
+                                    writer.write(theMessage);
                                 }
 
                             }
 
-                        }
-
-                        else System.out.println("Error in Inserting The Message to The Data Base!");
+                        } else throw new Exception("Error in Inserting The Message to The Data Base!");
 
                     }
                 }
 
-                    System.out.printf("User %d: %s\n", socketID, theMessage.getText());
+                System.out.printf("%s on Socket %d Says: %s\n", receivedMessage.getSender(), socketID, receivedMessage.getText());
             }
             System.out.println("Client Disconnected...");
 
-            socket.close();
+            clientSocket.close();
 
-        } catch (Exception ex) {
-            ex.printStackTrace();
+        } catch (
+                Exception ex) {
+            System.out.println(ex.getMessage());
         }
+
     }
 
-    public Message getTheMessage() {
-        return theMessage;
-    }
-
-    public void setTheMessage(Message theMessage) {
-        this.theMessage = theMessage;
-    }
-
-    public Socket getSocket() {
-        return socket;
-    }
-
-    public static long getSocketCount() {
-        return socketCount;
-    }
-
-    public static void setSocketCount(long socketCount) {
-        CommunicationHandler.socketCount = socketCount;
-    }
-
-    public long getSocketID() {
-        return socketID;
+    private void receivingFormatter() {
+        receivedMessage = new Message(theMessage);
     }
 }

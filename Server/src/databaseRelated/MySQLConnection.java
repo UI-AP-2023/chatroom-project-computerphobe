@@ -1,7 +1,6 @@
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.ResultSet;
-import java.sql.Statement;
+package databaseRelated;
+
+import java.sql.*;
 
 public class MySQLConnection {
     String URL = "jdbc:mysql://localhost/mychatroom";
@@ -33,9 +32,9 @@ public class MySQLConnection {
 
             Class.forName("com.mysql.cj.jdbc.Driver");
             Connection connection = DriverManager.getConnection(URL, username, password);
-            Statement statement = connection.prepareStatement(sqlCmd);
+            PreparedStatement statement = connection.prepareStatement(sqlCmd);
 
-            ResultSet rs = statement.executeQuery(sqlCmd);
+            ResultSet rs = statement.executeQuery();
 
             connection.close();
 
