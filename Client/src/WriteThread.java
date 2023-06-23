@@ -1,19 +1,17 @@
-import message_client.Client;
 import message_client.Message;
 
 import java.io.*;
 import java.net.Socket;
-import java.time.LocalDate;
-import java.time.LocalTime;
 import java.util.Scanner;
+
 import static java.lang.System.currentTimeMillis;
 
 public class WriteThread extends Thread {
-
+    private final String name = "User A";
     private final Socket clientSocket;
-    private final Client client = new Client("User A");
+    BufferedWriter writer;
 
-    public WriteThread(Socket clientSocket) {
+    public WriteThread(Socket clientSocket) throws IOException {
         this.clientSocket = clientSocket;
     }
 
@@ -22,64 +20,54 @@ public class WriteThread extends Thread {
 
         try {
 
-            String outgoingMessage;
+            String outgoingMessage = "";
             Scanner send = new Scanner(System.in);
-            PrintWriter out = new PrintWriter(this.clientSocket.getOutputStream());
 
-            boolean notExited = true;
+            boolean isExit = false;
 
-            while (notExited) {
+            while (!isExit) {
 
-                outgoingMessage = send.nextLine();
+                writer = new BufferedWriter(new OutputStreamWriter(this.clientSocket.getOutputStream()));
+
+                if (outgoingMessage.isEmpty())
+                    outgoingMessage = "Ping";
+
+                else outgoingMessage = send.nextLine();
 
                 switch (outgoingMessage) {
 
-                    case "ping" -> System.out.println(getPing());
+                    case "Ping" -> System.out.println(getPing());
 
-                    case "Exit" -> notExited = false;
+                    case "Exit" -> isExit = true;
 
-                    default -> sendMessage(outgoingMessage,out);
+                    default -> writer.write(new Message(outgoingMessage,name).sendingFormatter());
                 }
             }
 
-
-            Message turnOffMessage = new Message("Offline", null,null,client);
-
-            out.println(turnOffMessage);
-            out.close();
-
         } catch (IOException IO) {
+
             System.out.println(IO.getMessage());
+            System.out.println("Error in Connection In Write Thread");
         }
     }
 
-    private void sendMessage(String outgoingMessage, PrintWriter out) throws IOException {
-
-        LocalTime nowTime = LocalTime.now();
-        LocalDate nowDate = LocalDate.now();
-
-        Message msg = new Message(outgoingMessage, nowTime, nowDate, this.client );
-
-        out.println(msg);
-    }
-
-    private long getPing() throws IOException {
+    private String getPing() throws IOException {
 
         BufferedReader reader = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
 
-        PrintWriter outputStream = new PrintWriter(clientSocket.getOutputStream());
+        PrintWriter writer = new PrintWriter(clientSocket.getOutputStream());
 
         long pingStart = currentTimeMillis();
 
-        outputStream.println(new Message());
+        writer.println("");
 
         reader.readLine();
 
         long pingFinish = currentTimeMillis();
 
         reader.close();
-        outputStream.close();
+        writer.close();
 
-        return pingFinish - pingStart;
+        return String.format("%3d", (pingFinish - pingStart));
     }
 }

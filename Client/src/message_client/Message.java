@@ -8,43 +8,48 @@ public class Message {
     private final String text;
     private final LocalTime messageTime;
     private final LocalDate messageDate;
-    private final Client sender;
+    private final String sender;
 
-
-    /*
-Server Message constructor
-    public Message(String text, long messagePriority,
-                   LocalTime messageTime, LocalDate messageDate, Client sender) {
-
-        this.text = text;
-        this.messageTime = messageTime;
-        this.messageDate = messageDate;
-        this.sender = sender;
-    }
-*/
-
-    //Client Message constructor
-    public Message(String text, LocalTime messageTime, LocalDate messageDate, Client sender) {
-
-        this.text = text;
-        this.messageTime = messageTime;
-        this.messageDate = messageDate;
-        this.sender = sender;
+    public Message(String theMessage) {
+        String[] messageComponent = theMessage.split("\\|"); // sender | text | date | time
+        this.sender = messageComponent[0];
+        this.text =  messageComponent[1];
+        this.messageTime = LocalTime.parse(messageComponent[2]);
+        this.messageDate = LocalDate.parse(messageComponent[3]);
     }
 
-    public Message () {
-
-        this.text = "";
+    public Message(String text, String sender) {
+        this.text = text;
         this.messageTime = LocalTime.now();
         this.messageDate = LocalDate.now();
-        this.sender = null;
+        this.sender = sender;
+    }
+
+    public String getText() {
+        return text;
+    }
+
+    public LocalTime getMessageTime() {
+        return messageTime;
+    }
+
+    public LocalDate getMessageDate() {
+        return messageDate;
+    }
+
+    public String getSender() {
+        return sender;
     }
 
     @Override
     public String toString() {
-        return this.text + "\t[" +
-                this.messageTime.format(DateTimeFormatter.ofPattern("H:m")) + "\t" +
-                this.messageDate+"]";
+        return "[" + sender + "] : " + text + "\n\t" +
+                messageTime.format(DateTimeFormatter.ofPattern("%H:%m")) + "\t" +
+                messageDate.format(DateTimeFormatter.ofPattern("%d %h"));
     }
 
+    public String sendingFormatter() {
+        return sender + "|" + text + "|" + messageDate.format(DateTimeFormatter.ofPattern("%H:%m")) +
+                "|" + messageTime.format(DateTimeFormatter.ofPattern("%d %h"));
+    }
 }

@@ -1,40 +1,47 @@
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
+import message_client.Message;
+
+import java.io.*;
 import java.net.Socket;
 
-public class ReadThread extends Thread{
-
+public class ReadThread extends Thread {
+    private final String name = "User A";
     private final Socket clientSocket;
+    private Message receivedMessage;
 
-    public ReadThread(Socket clientSocket) {
+    public ReadThread(Socket clientSocket) throws IOException {
         this.clientSocket = clientSocket;
     }
 
     @Override
     public void run() {
 
-        try(BufferedReader bufferIn = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()))) {
+        try {
 
-            String name = "User A";
             System.out.println(name + " Connected To The Server On Port " + clientSocket.getPort());
 
+            BufferedReader reader = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
 
-            //=----------------------------------
-
+            //----------------------------------
 
             while (true) {
-
-                String incomingMessage = bufferIn.readLine();
-
-                if (incomingMessage.equals("Finish")) break;
-
-                System.out.println(incomingMessage);
+                String incomingMessage = reader.readLine();
+                if (incomingMessage.contains("No Old Messages")) {
+                    System.out.println(incomingMessage);
+                }
+                else {
+                    receivingFormatter(incomingMessage);
+                    System.out.println(receivedMessage);
+                }
             }
 
-        } catch (IOException IO) {
-//            IO.printStackTrace();
-            System.out.println("Error in Connection");
+        } catch (Exception ex) {
+
+            System.out.println(ex.getMessage());
+            System.out.println("Error in Connection In Read Thread");
         }
+    }
+
+    private void receivingFormatter(String incomingMessage) {
+        receivedMessage = new Message(incomingMessage);
     }
 }
