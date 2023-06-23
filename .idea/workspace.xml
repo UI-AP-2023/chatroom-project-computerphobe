@@ -1,14 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
   <component name="ChangeListManager">
     <list default="true" id="a11bce61-d187-44fc-a5c3-8d109a428141" name="Changes" comment="Client And Message Class Added.">
-      <change beforePath="$PROJECT_DIR$/out/production/ChatRoom Main Code/CommunicationHandler.class" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/out/production/ChatRoom Main Code/DataBaseMessage.class" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/out/production/ChatRoom Main Code/Main.class" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/out/production/ChatRoom Main Code/MySQLConnection.class" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/out/production/ChatRoom Main Code/messageRelated/Client.class" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/out/production/ChatRoom Main Code/messageRelated/Message.class" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/out/production/ChatRoom Main Code/messageRelated/MessageType.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Server/src/CommunicationHandler.java" beforeDir="false" afterPath="$PROJECT_DIR$/Server/src/CommunicationHandler.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Server/src/DataBaseMessage.java" beforeDir="false" afterPath="$PROJECT_DIR$/Server/src/DataBaseMessage.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -40,26 +39,30 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "RunOnceActivity.OpenProjectViewOnStart": "true",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "SHARE_PROJECT_CONFIGURATION_FILES": "true",
-    "WebServerToolWindowFactoryState": "false",
-    "git-widget-placeholder": "main",
-    "last_opened_file_path": "E:/Dars o zendegi/Java/chatroom-project-computerphobe/Server",
-    "project.structure.last.edited": "Modules",
-    "project.structure.proportion": "0.0",
-    "project.structure.side.proportion": "0.2",
-    "settings.editor.selected.configurable": "configurable.group.appearance",
-    "vue.rearranger.settings.migration": "true"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;SHARE_PROJECT_CONFIGURATION_FILES&quot;: &quot;true&quot;,
+    &quot;WebServerToolWindowFactoryState&quot;: &quot;false&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;main&quot;,
+    &quot;last_opened_file_path&quot;: &quot;E:/Dars o zendegi/Java/chatroom-project-computerphobe/Server&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;project.structure.last.edited&quot;: &quot;Modules&quot;,
+    &quot;project.structure.proportion&quot;: &quot;0.0&quot;,
+    &quot;project.structure.side.proportion&quot;: &quot;0.2&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;configurable.group.appearance&quot;,
+    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   },
-  "keyToStringList": {
-    "DatabaseDriversLRU": [
-      "mysql"
+  &quot;keyToStringList&quot;: {
+    &quot;DatabaseDriversLRU&quot;: [
+      &quot;mysql&quot;
     ]
   }
-}]]></component>
+}</component>
   <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
   <component name="TaskManager">
     <task active="true" id="Default" summary="Default task">
@@ -75,6 +78,8 @@
       <workItem from="1687331970885" duration="14000" />
       <workItem from="1687332236816" duration="22000" />
       <workItem from="1687353234246" duration="120000" />
+      <workItem from="1687367565474" duration="1031000" />
+      <workItem from="1687411338360" duration="132000" />
     </task>
     <task id="LOCAL-00001" summary="Initial Commit Server">
       <created>1686992839534</created>

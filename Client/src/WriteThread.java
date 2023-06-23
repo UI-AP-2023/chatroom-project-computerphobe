@@ -24,7 +24,7 @@ public class WriteThread extends Thread {
 
             String outgoingMessage;
             Scanner send = new Scanner(System.in);
-            ObjectOutputStream out = new ObjectOutputStream(new BufferedOutputStream(this.clientSocket.getOutputStream()));
+            PrintWriter out = new PrintWriter(this.clientSocket.getOutputStream());
 
             boolean notExited = true;
 
@@ -38,43 +38,40 @@ public class WriteThread extends Thread {
 
                     case "Exit" -> notExited = false;
 
-                    default -> sendMessage(outgoingMessage);
+                    default -> sendMessage(outgoingMessage,out);
                 }
             }
 
 
             Message turnOffMessage = new Message("Offline", null,null,client);
 
-            out.writeObject(turnOffMessage);
+            out.println(turnOffMessage);
             out.close();
 
         } catch (IOException IO) {
-            System.out.println("Error in Connection");
+            System.out.println(IO.getMessage());
         }
     }
 
-    private void sendMessage(String outgoingMessage) throws IOException {
-
-        ObjectOutputStream out = new ObjectOutputStream(new BufferedOutputStream(this.clientSocket.getOutputStream()));
+    private void sendMessage(String outgoingMessage, PrintWriter out) throws IOException {
 
         LocalTime nowTime = LocalTime.now();
         LocalDate nowDate = LocalDate.now();
 
         Message msg = new Message(outgoingMessage, nowTime, nowDate, this.client );
 
-        out.writeObject(msg);
-        out.close();
+        out.println(msg);
     }
 
     private long getPing() throws IOException {
 
         BufferedReader reader = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
 
-        ObjectOutputStream outputStream = new ObjectOutputStream(new BufferedOutputStream(clientSocket.getOutputStream()));
+        PrintWriter outputStream = new PrintWriter(clientSocket.getOutputStream());
 
         long pingStart = currentTimeMillis();
 
-        outputStream.writeObject(new Message());
+        outputStream.println(new Message());
 
         reader.readLine();
 

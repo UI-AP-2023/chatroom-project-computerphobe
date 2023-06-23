@@ -6,23 +6,22 @@ import java.time.format.DateTimeFormatter;
 
 public class Message {
     private final String text;
-    private static long staticMessagePriority = 1;
-    private long messagePriority;
     private final LocalTime messageTime;
     private final LocalDate messageDate;
     private final Client sender;
 
 
-    //Server Message constructor
+    /*
+Server Message constructor
     public Message(String text, long messagePriority,
                    LocalTime messageTime, LocalDate messageDate, Client sender) {
 
         this.text = text;
-        this.messagePriority = staticMessagePriority++;
         this.messageTime = messageTime;
         this.messageDate = messageDate;
         this.sender = sender;
     }
+*/
 
     //Client Message constructor
     public Message(String text, LocalTime messageTime, LocalDate messageDate, Client sender) {
@@ -43,12 +42,9 @@ public class Message {
 
     @Override
     public String toString() {
-        return "[" + sender.getUsername() + "] : " + text + "\n\t" +
-                messageTime.format(DateTimeFormatter.ofPattern("%H:%m")) + "\t" +
-                messageDate.format(DateTimeFormatter.ofPattern("%d %b"));
+        return this.text + "\t[" +
+                this.messageTime.format(DateTimeFormatter.ofPattern("H:m")) + "\t" +
+                this.messageDate+"]";
     }
 
-    public long getMessagePriority() {
-        return messagePriority;
-    }
 }
